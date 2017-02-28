@@ -49,31 +49,31 @@ public class MTRMContainer extends Container
     }
 
     @Override
-    public ItemStack slotClick(int i, int mousebtn, int modifier, EntityPlayer player)
+    public ItemStack slotClick(int i, int mousebtn, ClickType clickTypeIn, EntityPlayer player)
     {
-        ItemStack stack = null;
+        ItemStack stack = ItemStack.EMPTY;
         if ((i >= 0 && i <= 9) || i == RETURN_SLOT_ID) // Fake slots
         {
             if (mousebtn == 2)
             {
-                getSlot(i).putStack(null);
+                getSlot(i).putStack(ItemStack.EMPTY);
             }
             else if (mousebtn == 0)
             {
                 InventoryPlayer playerInv = player.inventory;
-                getSlot(i).onSlotChanged();
+//                getSlot(i).onSlotChanged();
                 ItemStack stackSlot = getSlot(i).getStack();
                 ItemStack stackHeld = playerInv.getItemStack();
 
-                if (stackSlot != null) stack = stackSlot.copy();
+                if (!stackSlot.isEmpty()) stack = stackSlot.copy();
 
-                if (stackHeld != null)
+                if (!stackHeld.isEmpty())
                 {
                     ItemStack newStack = stackHeld.copy();
-                    if (!(i == 0 || i == RETURN_SLOT_ID)) newStack.stackSize = 1;
+                    if (!(i == 0 || i == RETURN_SLOT_ID)) newStack.setCount(1);
                     getSlot(i).putStack(newStack);
                 }
-                else getSlot(i).putStack(null);
+                else getSlot(i).putStack(ItemStack.EMPTY);
             }
             else if (mousebtn == 1)
             {
@@ -82,36 +82,34 @@ public class MTRMContainer extends Container
                 ItemStack stackSlot = getSlot(i).getStack();
                 ItemStack stackHeld = playerInv.getItemStack();
 
-                if (stackSlot != null) stack = stackSlot.copy();
+                stack = stackSlot.copy();
 
-                if (stackHeld != null)
+                if (!stackHeld.isEmpty())
                 {
                     stackHeld = stackHeld.copy();
-                    if (stackSlot != null && stackHeld.isItemEqual(stackSlot) && (i == 0 || i == RETURN_SLOT_ID))
+                    if (!stackSlot.isEmpty() && stackHeld.isItemEqual(stackSlot) && (i == 0 || i == RETURN_SLOT_ID))
                     {
-                        int max = stackSlot.getMaxStackSize();
-                        if (++stackSlot.stackSize > max) stackSlot.stackSize = max;
-                        getSlot(i).putStack(stackSlot);
+                        if (stackSlot.getCount() < stackSlot.getMaxStackSize()) stackSlot.grow(1);
                     }
                     else
                     {
-                        stackHeld.stackSize = 1;
-                        getSlot(i).putStack(stackHeld);
+                        stackSlot.setCount(1);
                     }
+                    getSlot(i).putStack(stackSlot);
                 }
                 else
                 {
-                    if (stackSlot != null)
+                    if (!stackSlot.isEmpty())
                     {
-                        stackSlot.stackSize--;
-                        if (stackSlot.stackSize == 0) getSlot(i).putStack(null);
+                        stackSlot.shrink(1);
+                        if (stackSlot.isEmpty()) getSlot(i).putStack(ItemStack.EMPTY);
                     }
                 }
             }
         }
         else
         {
-            stack = super.slotClick(i, mousebtn, modifier, player);
+            stack = super.slotClick(i, mousebtn, clickTypeIn, player);
         }
         return stack;
     }
@@ -119,14 +117,15 @@ public class MTRMContainer extends Container
     /**
      * Called when a player shift-clicks on a slot. You must override this or you will crash when someone does that.
      */
+    @Override
     public ItemStack transferStackInSlot(EntityPlayer player, int slots)
     {
-        if (slots < 10 || slots == RETURN_SLOT_ID) ((Slot) inventorySlots.get(slots)).putStack(null);
-        return null;
+        if (slots < 10 || slots == RETURN_SLOT_ID) inventorySlots.get(slots).putStack(ItemStack.EMPTY);
+        return ItemStack.EMPTY;
     }
 
-    public boolean func_94530_a(ItemStack p_94530_1_, Slot p_94530_2_)
-    {
-        return p_94530_2_.inventory != craftResult && p_94530_2_.inventory != returnSlot && super.func_94530_a(p_94530_1_, p_94530_2_);
-    }
+//    public boolean func_94530_a(ItemStack p_94530_1_, Slot p_94530_2_)
+//    {
+//        return p_94530_2_.inventory != craftResult && p_94530_2_.inventory != returnSlot && super.func_94530_a(p_94530_1_, p_94530_2_);
+//    }
 }
